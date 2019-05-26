@@ -1,7 +1,7 @@
 """
 K-SHORTEST-PATH PROBLEM v1.0
-Author: Lucas Geurtjens
-Date: 25/05/2019
+Author: Lucas Geurtjens (s5132841)
+Date: 26/05/2019
 
 REFERENCES/CREDITS:
 [1]
@@ -19,6 +19,7 @@ import math
 import os
 import sys
 import time
+
 
 class Graph:
     def __init__(self):
@@ -162,8 +163,7 @@ def main():
     Main of the program
     """
     try:
-        #abs_location = os.path.abspath(sys.argv[1])  # Location of input file
-        abs_location = "my_input"
+        abs_location = os.path.abspath(sys.argv[1])  # Location of input file
 
     except IndexError:
         print("Error: Program must be run from the commandline with arguments.")
@@ -176,7 +176,7 @@ def main():
         print("Error: It appears that the input text file location (absolute location) was incorrect.")
         sys.exit(-1)
 
-    print("Loading data... ", end="")
+    print("Loading data... ")
     g = Graph()  # Declare our graph object
 
     # Input the node and edge counts
@@ -193,9 +193,8 @@ def main():
     # Input the starting and goal node as well as k value
     start_node, goal_node, k_value, = input_f.readline().split()
     k_value = int(k_value)
-
-    print("[Finished]")
-    print("Calculating k-shortest-paths... ", end="")
+    print("[Done]")
+    print("Calculating k-shortest-paths... ")
 
     start_time = time.time()
 
@@ -203,9 +202,9 @@ def main():
     found_path_costs = ksp(g, start_node, goal_node, k_value)
 
     end_time = time.time()
-    print("[Finished]")
 
-    print("Found Path Costs:", "%0.2f (secs)" % (end_time - start_time))
+    print("[Done]")
+    print("Found Shortest Path Distances in", "%0.2f (secs):" % (end_time - start_time))
     print(found_path_costs)
 
     input_f.close()
