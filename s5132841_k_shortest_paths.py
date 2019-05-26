@@ -13,7 +13,8 @@ Yen's algorithm...
 """
 
 from collections import defaultdict
-
+import copy
+import math
 
 class Graph:
     def __init__(self):
@@ -78,10 +79,61 @@ def dijkstra(graph, start, goal):
         child_node = dist_costs[current_node][0]  # Grab child of current node
         current_node = child_node  # Set current node to be the child
 
-    optimal_path = optimal_path[::-1]  # Reverse the path (since we went from end -> start
+    optimal_path = optimal_path[::-1]  # Reverse the path (since we went from end -> start)
 
     return optimal_path, optimal_cost
 
+
+def ksp(shortest_path, known_graph, k):
+    """
+    Finds the k - 1 shortest path approximations.
+    :param shortest_path: Current known shortest route from the Dijkstra algorithm
+    :param known_graph: Graph of the edges and weights
+    :param k: Current k-value
+    :return: A list of k - 1 approximate shortest route costs
+    """
+    k_shortest = []
+
+    optimal_node_lst = shortest_path[0]
+
+    for node in range(len(optimal_node_lst) - 1):
+        if k == 0:
+            break
+
+        node_pair = (optimal_node_lst[node], optimal_node_lst[node + 1])
+
+        new_graph = copy.deepcopy(known_graph)
+        new_graph.weights[node_pair] = math.inf
+
+        k_path = dijkstra(new_graph, optimal_node_lst[0], optimal_node_lst[len(optimal_node_lst) - 1])
+        k_shortest.append(k_path[1])
+        k -= 1
+
+    if k != 0:
+        final_k_path_node = k_path[len(k_path) - 1]
+        while k:
+            k_shortest.append(final_k_path_node)
+            k -= 1
+
+        k_shortest.sort()
+
+    return k_shortest
+
+
+def shortest_paths(graph, start, goal, k):
+
+    k_sp = []
+
+    sp = dijkstra(graph, start, goal)  # Shortest path using Dijkstra
+    k -= 1
+    alternate_sp = ksp(sp, graph, k)
+
+    k_sp.append(sp[1])
+
+    for route_cost in alternate_sp:
+        k_sp.append(route_cost)
+
+    print(k_sp)
 
 g = Graph()
 
@@ -101,5 +153,5 @@ edges = [
 for edge in edges:
     g.add_edge(*edge)
 
-my_path = dijkstra(g, 'C', 'H')
-print(my_path)
+
+my_path = shortest_paths(g, 'C', 'H', 5)
