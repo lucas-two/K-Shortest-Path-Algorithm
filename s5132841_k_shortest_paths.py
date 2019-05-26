@@ -1,5 +1,5 @@
 """
-K-SHORTEST-PATH PROBLEM
+K-SHORTEST-PATH PROBLEM v1.0
 Author: Lucas Geurtjens
 Date: 25/05/2019
 
@@ -16,7 +16,9 @@ URL: https://en.wikipedia.org/wiki/Yen%27s_algorithm
 from collections import defaultdict
 import copy
 import math
-
+import os
+import sys
+import time
 
 class Graph:
     def __init__(self):
@@ -147,36 +149,67 @@ def ksp(graph, start, goal, k):
     k_shortest_paths.append(dijkstra_sp[1])
     k -= 1
 
-    # Perform alternate shortest path searches (for k - 1), adding it to the list of shortest paths
+    # Perform alternate shortest path searches (for k - 1), adding them to the list of shortest paths
     alternate_sp = alt_shortest_paths(dijkstra_sp, graph, k)
     for route_cost in alternate_sp:
         k_shortest_paths.append(route_cost)
 
-    print("Shortest Path Costs:")
-    print(k_shortest_paths)
-
-# def main():
-#     ksp(my_graph, my_start, my_goal, k_value)
+    return k_shortest_paths
 
 
-# TESTING INPUTS:
+def main():
+    """
+    Main of the program
+    """
+    try:
+        #abs_location = os.path.abspath(sys.argv[1])  # Location of input file
+        abs_location = "my_input"
 
-g = Graph()
+    except IndexError:
+        print("Error: Program must be run from the commandline with arguments.")
+        sys.exit(-1)
 
-edges = [
-    ("C", "D", 3),
-    ("C", "E", 2),
-    ("D", "F", 4),
-    ("E", "D", 1),
-    ("E", "F", 2),
-    ("E", "G", 3),
-    ("F", "G", 2),
-    ("F", "H", 1),
-    ("G", "H", 2)
-]
+    try:
+        input_f = open(abs_location, "r")
+
+    except FileNotFoundError:
+        print("Error: It appears that the input text file location (absolute location) was incorrect.")
+        sys.exit(-1)
+
+    print("Loading data... ", end="")
+    g = Graph()  # Declare our graph object
+
+    # Input the node and edge counts
+    no_of_nodes, no_of_edges = input_f.readline().split()
+
+    no_of_edges = int(no_of_edges)
+    no_of_nodes = int(no_of_nodes)
+
+    # Input each of the edges and add them to the graph object
+    for _ in range(no_of_edges):
+        node_from, node_to, weight = input_f.readline().split()
+        g.add_edge(node_from, node_to, float(weight))
+
+    # Input the starting and goal node as well as k value
+    start_node, goal_node, k_value, = input_f.readline().split()
+    k_value = int(k_value)
+
+    print("[Finished]")
+    print("Calculating k-shortest-paths... ", end="")
+
+    start_time = time.time()
+
+    # Execute the k-shortest-paths algorithm
+    found_path_costs = ksp(g, start_node, goal_node, k_value)
+
+    end_time = time.time()
+    print("[Finished]")
+
+    print("Found Path Costs:", "%0.2f (secs)" % (end_time - start_time))
+    print(found_path_costs)
+
+    input_f.close()
 
 
-for edge in edges:
-    g.add_edge(*edge)
-
-ksp(g, 'C', 'H', 6)
+if __name__ == "__main__":
+    main()
