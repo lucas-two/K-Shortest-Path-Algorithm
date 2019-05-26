@@ -5,29 +5,37 @@ Date: 25/05/2019
 
 REFERENCES/CREDITS:
 [1]
-Dijkstra's SP implementation and graph structure was heavily influenced by 'Ben Alex Keen'
+Dijkstra's SP implementation and graph structure was heavily influenced by 'Ben Alex Keen' (2017)
 URL : http://benalexkeen.com/implementing-djikstras-shortest-path-algorithm-with-python/
 
 [2]
-Yen's algorithm...
+The alternate k-shortest path implementation was loosely inspired by the Yen's algorithm created by 'Jin Y. Yen' (1971)
+URL: https://en.wikipedia.org/wiki/Yen%27s_algorithm
 """
 
 from collections import defaultdict
 import copy
 import math
 
+
 class Graph:
     def __init__(self):
-        self.edges = defaultdict(list)
-        self.weights = {}
+        self.edges = defaultdict(list)  # Dictionary of all edges
+        self.weights = {}  # Dictionary of all weights
 
     def add_edge(self, from_node, to_node, weight):
-        # Assuming non bi-directional
-        self.edges[from_node].append(to_node)
-        self.weights[(from_node, to_node)] = weight
+        self.edges[from_node].append(to_node)  # Set edge of node
+        self.weights[(from_node, to_node)] = weight  # Set weight of node
 
 
 def dijkstra(graph, start, goal):
+    """
+    Performs a Dijkstra's shortest path search
+    :param graph: A graph of edges and weights
+    :param start: Starting node
+    :param goal: Goal node to reach
+    :return: Path list of the optimal shortest path and the distance cost to reach the goal node
+    """
     dist_costs = {}  # Costs to travel to each node. (Initialised with starting node)
     dist_costs.update({start: (None, 0)})  # Update distance costs dict with starting node
     current_node = start  # Initialise starting node to the current node
@@ -84,56 +92,74 @@ def dijkstra(graph, start, goal):
     return optimal_path, optimal_cost
 
 
-def ksp(shortest_path, known_graph, k):
+def alt_shortest_paths(shortest_path, known_graph, k):
     """
-    Finds the k - 1 shortest path approximations.
+    Finds the alternate (k - 1) shortest path approximations.
     :param shortest_path: Current known shortest route from the Dijkstra algorithm
     :param known_graph: Graph of the edges and weights
     :param k: Current k-value
     :return: A list of k - 1 approximate shortest route costs
     """
-    k_shortest = []
+    k_shortest = []  # Will store the alternate shortest path costs
+    optimal_node_lst = shortest_path[0]  # Grab the shortest path nodes from optimal path
 
-    optimal_node_lst = shortest_path[0]
-
+    # For each edge pair in the optimal node list...
     for node in range(len(optimal_node_lst) - 1):
+
+        # Stop if we reach the k limit
         if k == 0:
             break
 
-        node_pair = (optimal_node_lst[node], optimal_node_lst[node + 1])
+        node_pair = (optimal_node_lst[node], optimal_node_lst[node + 1])  # Grab the current edge pair
+        new_graph = copy.deepcopy(known_graph)  # Create a copy of the graph
+        new_graph.weights[node_pair] = math.inf  # Set the current edge pair to infinity, such that it won't be selected
+        k_path = dijkstra(new_graph, optimal_node_lst[0], optimal_node_lst[len(optimal_node_lst) - 1])  # Perform Dijkstra SP
+        k_shortest.append(k_path[1])  # Return the cost of the shortest path found
+        k -= 1  # Decrement the k-value
 
-        new_graph = copy.deepcopy(known_graph)
-        new_graph.weights[node_pair] = math.inf
+    # Sort costs by ascending order
+    k_shortest.sort()
 
-        k_path = dijkstra(new_graph, optimal_node_lst[0], optimal_node_lst[len(optimal_node_lst) - 1])
-        k_shortest.append(k_path[1])
-        k -= 1
-
+    # If we did not exhaust the k size
     if k != 0:
-        final_k_path_node = k_path[len(k_path) - 1]
+
+        # Pad the shortest path with the last node cost found
+        final_k_path_node = k_shortest[len(k_shortest) - 1]
         while k:
             k_shortest.append(final_k_path_node)
             k -= 1
 
-        k_shortest.sort()
-
     return k_shortest
 
 
-def shortest_paths(graph, start, goal, k):
+def ksp(graph, start, goal, k):
+    """
+    Calculate the K-Shortest Path
+    :param graph: Weights and edges of nodes
+    :param start: Starting node
+    :param goal: Goal node to reach
+    :param k: Amount of paths to find (assuming greater than 0)
+    """
+    k_shortest_paths = []
 
-    k_sp = []
-
-    sp = dijkstra(graph, start, goal)  # Shortest path using Dijkstra
+    # Perform Dijkstra shortest path search, adding it to the list of shortest paths
+    dijkstra_sp = dijkstra(graph, start, goal)
+    k_shortest_paths.append(dijkstra_sp[1])
     k -= 1
-    alternate_sp = ksp(sp, graph, k)
 
-    k_sp.append(sp[1])
-
+    # Perform alternate shortest path searches (for k - 1), adding it to the list of shortest paths
+    alternate_sp = alt_shortest_paths(dijkstra_sp, graph, k)
     for route_cost in alternate_sp:
-        k_sp.append(route_cost)
+        k_shortest_paths.append(route_cost)
 
-    print(k_sp)
+    print("Shortest Path Costs:")
+    print(k_shortest_paths)
+
+# def main():
+#     ksp(my_graph, my_start, my_goal, k_value)
+
+
+# TESTING INPUTS:
 
 g = Graph()
 
@@ -153,5 +179,4 @@ edges = [
 for edge in edges:
     g.add_edge(*edge)
 
-
-my_path = shortest_paths(g, 'C', 'H', 5)
+ksp(g, 'C', 'H', 6)
